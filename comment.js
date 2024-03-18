@@ -1,39 +1,80 @@
 // Create web server
-var http = require('http');
-var url = require('url');
-var fs = require('fs');
-var path = require('path');
-var comment = require('./comment');
+// Create a route for comments
+// Use a middleware to parse the body of the request
+// Create a POST route for comments
+// Create a GET route for comments
+// Create a DELETE route for comments
+// Create a PUT route for comments
+// Create a PATCH route for comments
 
-http.createServer(function(req, res) {
-	var uri = url.parse(req.url).pathname;
-	var filename = path.join(process.cwd(), uri);
+// Express.js
+const express = require('express');
+const app = express();
 
-	fs.exists(filename, function(exists) {
-		if (!exists) {
-			res.writeHead(404, {'Content-Type': 'text/plain'});
-			res.write('404 Not Found\n');
-			res.end();
-			return;
-		}
+// Middleware
+app.use(express.json());
 
-		if (fs.statSync(filename).isDirectory()) {
-			filename += '/index.html';
-		}
+// Comments
+const comments = [
+  {
+    id: 1,
+    user: 'John',
+    comment: 'Hello World'
+  },
+  {
+    id: 2,
+    user: 'Mary',
+    comment: 'Hello Node'
+  }
+];
 
-		fs.readFile(filename, 'binary', function(err, file) {
-			if (err) {
-				res.writeHead(500, {'Content-Type': 'text/plain'});
-				res.write(err + '\n');
-				res.end();
-				return;
-			}
+// Routes
+app.post('/comments', (req, res) => {
+  const comment = {
+    id: comments.length + 1,
+    user: req.body.user,
+    comment: req.body.comment
+  };
+  comments.push(comment);
+  res.send(comment);
+});
 
-			res.writeHead(200);
-			res.write(file, 'binary');
-			res.end();
-		});
-	});
-}).listen(8124);
+app.get('/comments', (req, res) => {
+  res.send(comments);
+});
 
-console.log('Server running at http://localhost:8124/');
+app.delete('/comments/:id', (req, res) => {
+  const comment = comments.find(c => c.id === parseInt(req.params.id));
+  if (!comment) return res.status(404).send('The comment with the given ID was not found');
+  const index = comments.indexOf(comment);
+  comments.splice(index, 1);
+  res.send(comment);
+});
+
+app.put('/comments/:id', (req, res) => {
+  const comment = comments.find(c => c.id === parseInt(req.params.id));
+  if (!comment) return res.status(404).send('The comment with the given ID was not found');
+  comment.user = req.body.user;
+  comment.comment = req.body.comment;
+  res.send(comment);
+});
+
+app.patch('/comments/:id', (req, res) => {
+  const comment = comments.find(c => c.id === parseInt(req.params.id));
+  if (!comment) return res.status(404).send('The comment with the given ID was not found');
+  comment.user = req.body.user || comment.user;
+  comment.comment = req.body.comment || comment.comment;
+  res.send(comment);
+});
+
+// Listen
+app.listen(3000, () => {
+  console.log('Server is running on port 3000');
+});
+
+// HTTP requests
+// POST /comments
+// GET /comments
+// DELETE /comments/1
+// PUT /comments/1
+// PATCH
